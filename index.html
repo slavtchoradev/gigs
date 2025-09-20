@@ -26,12 +26,20 @@
 
     #resetBtn { margin: 10px 0; padding: 8px 15px; font-size: 1em; border:none; border-radius:5px; background:#ff7b7b; color:#fff; cursor:pointer; }
     #resetBtn:hover { background:#ff5252; }
+
+    /* cacher par défaut l’input et son label */
+    .threshold, .label-fois { display: none; }
+    /* style pour le bouton + */
+    .showThreshold { margin-left: 5px; font-weight: bold; cursor: pointer; border: none; background: transparent; }
+    /* compteur affiché après clic sur + */
+    .counter { display: none; margin-left: 5px; font-size: 0.9em; color: #333; }
 </style>
 </head>
 <body>
 
 <h1>Suivi des Tâches & Brain Gigs</h1>
 <p>Clique sur une tâche pour la marquer comme terminée et gagner des points !</p>
+  <p>Total de points : <span id="totalPoints">0</span></p>
 
 <div class="container">
   <!-- Tâches -->
@@ -39,46 +47,46 @@
     <h2>Tâches</h2>
     <ul id="chores">
       <!-- Petites ⭐1 -->
-      <li data-points="1" id="t1">Faire son lit <span class="points">1⭐</span></li>
-      <li data-points="1" id="t2">Vider le lave-vaisselle <span class="points">1⭐</span></li>
-      <li data-points="1" id="t3">Mettre la table <span class="points">1⭐</span></li>
-      <li data-points="1" id="t4">Débarrasser la table après le repas <span class="points">1⭐</span></li>
-      <li data-points="1" id="t5">Sortir les poubelles/recyclage <span class="points">1⭐</span></li>
-      <li data-points="1" id="t6">Arroser les plantes d’intérieur <span class="points">1⭐</span></li>
-      <li data-points="1" id="t7">Faire les paires de chaussettes <span class="points">1⭐</span></li>
-      <li data-points="1" id="t8">Balayer une pièce <span class="points">1⭐</span></li>
+      <li data-points="1" id="t1"><span class="points">1⭐</span>Faire son lit</li>
+      <li data-points="1" id="t2"><span class="points">1⭐</span>Vider le lave-vaisselle</li>
+      <li data-points="1" id="t3"><span class="points">1⭐</span>Mettre la table</li>
+      <li data-points="1" id="t4"><span class="points">1⭐</span>Débarrasser la table après le repas</li>
+      <li data-points="1" id="t5"><span class="points">1⭐</span>Sortir les poubelles/recyclage</li>
+      <li data-points="1" id="t6"><span class="points">1⭐</span>Arroser les plantes d’intérieur</li>
+      <li data-points="1" id="t7"><span class="points">1⭐</span>Faire les paires de chaussettes</li>
+      <li data-points="1" id="t8"><span class="points">1⭐</span>Balayer une pièce</li>
 
       <!-- Moyennes ⭐2 -->
-      <li data-points="2" id="t9">Plier le linge <span class="points">2⭐</span></li>
-      <li data-points="2" id="t10">Passer l’aspirateur dans une pièce <span class="points">2⭐</span></li>
-      <li data-points="2" id="t11">Nettoyer lavabo/miroir <span class="points">2⭐</span></li>
-      <li data-points="2" id="t12">Dépoussiérer les meubles <span class="points">2⭐</span></li>
-      <li data-points="2" id="t13">Ranger les jouets/étagères <span class="points">2⭐</span></li>
-      <li data-points="2" id="t14">Nettoyer 1–2 fenêtres <span class="points">2⭐</span></li>
-      <li data-points="2" id="t15">Aider à préparer le repas <span class="points">2⭐</span></li>
-      <li data-points="2" id="t16">Laver la voiture (extérieur) <span class="points">2⭐</span></li>
-      <li data-points="2" id="t17">Trier le recyclage <span class="points">2⭐</span></li>
-      <li data-points="2" id="t18">Changer les draps <span class="points">2⭐</span></li>
+      <li data-points="2" id="t9"><span class="points">2⭐</span>Plier le linge</li>
+      <li data-points="2" id="t10"><span class="points">2⭐</span>Passer l’aspirateur dans une pièce</li>
+      <li data-points="2" id="t11"><span class="points">2⭐</span>Nettoyer lavabo/miroir</li>
+      <li data-points="2" id="t12"><span class="points">2⭐</span>Dépoussiérer les meubles</li>
+      <li data-points="2" id="t13"><span class="points">2⭐</span>Ranger les jouets/étagères</li>
+      <li data-points="2" id="t14"><span class="points">2⭐</span>Nettoyer 1–2 fenêtres</li>
+      <li data-points="2" id="t15"><span class="points">2⭐</span>Aider à préparer le repas</li>
+      <li data-points="2" id="t16"><span class="points">2⭐</span>Laver la voiture (extérieur)</li>
+      <li data-points="2" id="t17"><span class="points">2⭐</span>Trier le recyclage</li>
+      <li data-points="2" id="t18"><span class="points">2⭐</span>Changer les draps</li>
 
       <!-- Grandes ⭐3–4 -->
-      <li data-points="3" id="t19">Passer la serpillière <span class="points">3⭐</span></li>
-      <li data-points="3" id="t20">Faire une lessive complète <span class="points">3⭐</span></li>
-      <li data-points="3" id="t21">Ratisser les feuilles / déneiger <span class="points">3⭐</span></li>
-      <li data-points="3" id="t22">Nettoyer les étagères du frigo <span class="points">3⭐</span></li>
-      <li data-points="3" id="t23">Ranger le garde-manger/placard <span class="points">3⭐</span></li>
-      <li data-points="3" id="t24">Nettoyer espace animaux <span class="points">3⭐</span></li>
-      <li data-points="3" id="t25">Nettoyer toute la salle de bain <span class="points">3⭐</span></li>
-      <li data-points="3" id="t26">Aider aux courses <span class="points">3⭐</span></li>
-      <li data-points="3" id="t27">Ranger et aspirer le salon <span class="points">3⭐</span></li>
-      <li data-points="3" id="t28">Aider au jardin / travaux extérieurs <span class="points">3⭐</span></li>
-      <li data-points="3" id="t29">Préparer un petit déjeuner ou goûter pour la famille <span class="points">3⭐</span></li>
-      <li data-points="3" id="t30">Organiser la bibliothèque / tiroirs pour la famille <span class="points">3⭐</span></li>
-      <li data-points="4" id="t31">Créer un tableau familial pour suivre corvées et activités <span class="points">4⭐</span></li>
-      <li data-points="3" id="t32">Préparer un repas ou encas pour un voisin ou ami <span class="points">3⭐</span></li>
-      <li data-points="3" id="t33">Aider à quelqu'un à ranger son espace pour mieux étudier/travailler <span class="points">3⭐</span></li>
-      <li data-points="3" id="t34">Nettoyer et organiser un espace commun pour plus de confort <span class="points">3⭐</span></li>
-      <li data-points="3" id="t35">Laver les vitres ou fenêtres pour rendre la maison plus agréable <span class="points">3⭐</span></li>
-      <li data-points="4" id="t36">Créer un système de rangement pour les jouets ou matériel scolaire <span class="points">4⭐</span></li>
+      <li data-points="3" id="t19"><span class="points">3⭐</span>Passer la serpillière</li>
+      <li data-points="3" id="t20"><span class="points">3⭐</span>Faire une lessive complète</li>
+      <li data-points="3" id="t21"><span class="points">3⭐</span>Ratisser les feuilles / déneiger</li>
+      <li data-points="3" id="t22"><span class="points">3⭐</span>Nettoyer les étagères du frigo</li>
+      <li data-points="3" id="t23"><span class="points">3⭐</span>Ranger le garde-manger/placard</li>
+      <li data-points="3" id="t24"><span class="points">3⭐</span>Nettoyer espace animaux</li>
+      <li data-points="3" id="t25"><span class="points">3⭐</span>Nettoyer toute la salle de bain</li>
+      <li data-points="3" id="t26"><span class="points">3⭐</span>Aider aux courses</li>
+      <li data-points="3" id="t27"><span class="points">3⭐</span>Ranger et aspirer le salon</li>
+      <li data-points="3" id="t28"><span class="points">3⭐</span>Aider au jardin / travaux extérieurs</li>
+      <li data-points="3" id="t29"><span class="points">3⭐</span>Préparer un petit déjeuner ou goûter pour la famille</li>
+      <li data-points="3" id="t30"><span class="points">3⭐</span>Organiser la bibliothèque / tiroirs pour la famille</li>
+      <li data-points="4" id="t31"><span class="points">4⭐</span>Créer un tableau familial pour suivre corvées et activités</li>
+      <li data-points="3" id="t32"><span class="points">3⭐</span>Préparer un repas ou encas pour un voisin ou ami</li>
+      <li data-points="3" id="t33"><span class="points">3⭐</span>Aider à quelqu'un à ranger son espace pour mieux étudier/travailler</li>
+      <li data-points="3" id="t34"><span class="points">3⭐</span>Nettoyer et organiser un espace commun pour plus de confort</li>
+      <li data-points="3" id="t35"><span class="points">3⭐</span>Laver les vitres ou fenêtres pour rendre la maison plus agréable</li>
+      <li data-points="4" id="t36"><span class="points">4⭐</span>Créer un système de rangement pour les jouets ou matériel scolaire</li>
 
     </ul>
   </div>
@@ -88,48 +96,54 @@
     <h2>Brain Gigs</h2>
     <ul id="brainGigs">
       <!-- Rapides ⭐2 -->
-      <li data-points="2" id="g1">Partager 3 faits intéressants <span class="points">2⭐</span></li>
-      <li data-points="2" id="g2">Poser 5 questions réfléchies <span class="points">2⭐</span></li>
-      <li data-points="2" id="g3">Apprendre un truc de maths nouveau<span class="points">2⭐</span></li>
-      <li data-points="2" id="g4">Écouter podcast ou livre audio et partager <span class="points">2⭐</span></li>
-      <li data-points="2" id="g5">Apprendre un nouveau mot et l’utiliser <span class="points">2⭐</span></li>
-      <li data-points="2" id="g6">Jouer à un jeu de mémoire et expliquer <span class="points">2⭐</span></li>
-      <li data-points="2" id="g7">Écrire 5 points de gratitude <span class="points">2⭐</span></li>
+      <li data-points="2" id="g1"><span class="points">2⭐</span>Partager 3 faits intéressants</li>
+      <li data-points="2" id="g2"><span class="points">2⭐</span>Poser 5 questions réfléchies</li>
+      <li data-points="2" id="g3"><span class="points">2⭐</span>Apprendre un truc de maths nouveau</li>
+      <li data-points="2" id="g4"><span class="points">2⭐</span>Écouter podcast ou livre audio et partager</li>
+      <li data-points="2" id="g5"><span class="points">2⭐</span>Apprendre un nouveau mot et l’utiliser</li>
+      <li data-points="2" id="g6"><span class="points">2⭐</span>Jouer à un jeu de mémoire et expliquer</li>
+      <li data-points="2" id="g7"><span class="points">2⭐</span>Écrire 5 points de gratitude</li>
 
       <!-- Moyens ⭐3 -->
-      <li data-points="3" id="g8">Interviewer un grand-parent/membre de la famille <span class="points">3⭐</span></li>
-      <li data-points="3" id="g9">Lire un chapitre et résumer <span class="points">3⭐</span></li>
-      <li data-points="3" id="g10">Chercher sur un leader/scientifique/inventeur <span class="points">3⭐</span></li>
-      <li data-points="3" id="g11">Écrire et jouer une histoire/poème/chanson <span class="points">3⭐</span></li>
-      <li data-points="3" id="g12">Débattre d’un sujet amusant <span class="points">3⭐</span></li>
-      <li data-points="3" id="g13">Dessiner ou illustrer une idée scientifique <span class="points">3⭐</span></li>
-      <li data-points="3" id="g14">Observer un parent et partager <span class="points">3⭐</span></li>
-      <li data-points="3" id="g15">Apprendre une nouvelle compétence en ligne <span class="points">3⭐</span></li>
-      <li data-points="3" id="g16">Expliquer le fonctionnement d’un objet domestique <span class="points">3⭐</span></li>
-      <li data-points="3" id="g17">Créer un quiz de 5 questions <span class="points">3⭐</span></li>
+      <li data-points="3" id="g8"><span class="points">3⭐</span>Interviewer un grand-parent/membre de la famille</li>
+      <li data-points="3" id="g9"><span class="points">3⭐</span>Lire un chapitre et résumer</li>
+      <li data-points="3" id="g10"><span class="points">3⭐</span>Chercher sur un leader/scientifique/inventeur</li>
+      <li data-points="3" id="g11"><span class="points">3⭐</span>Écrire et jouer une histoire/poème/chanson</li>
+      <li data-points="3" id="g12"><span class="points">3⭐</span>Débattre d’un sujet amusant</li>
+      <li data-points="3" id="g13"><span class="points">3⭐</span>Dessiner ou illustrer une idée scientifique</li>
+      <li data-points="3" id="g14"><span class="points">3⭐</span>Observer un parent et partager</li>
+      <li data-points="3" id="g15"><span class="points">3⭐</span>Apprendre une nouvelle compétence en ligne</li>
+      <li data-points="3" id="g16"><span class="points">3⭐</span>Expliquer le fonctionnement d’un objet domestique</li>
+      <li data-points="3" id="g17"><span class="points">3⭐</span>Créer un quiz de 5 questions</li>
 
       <!-- Grandes ⭐4 -->
-      <li data-points="4" id="g18">Inviter un invité et préparer 3 questions <span class="points">4⭐</span></li>
-      <li data-points="4" id="g19">Faire une mini-présentation <span class="points">4⭐</span></li>
-      <li data-points="4" id="g20">Créer un TED Talk familial <span class="points">4⭐</span></li>
-      <li data-points="4" id="g21">Écrire et jouer une mini-pièce/sketch <span class="points">4⭐</span></li>
-      <li data-points="4" id="g22">Chercher un problème réel et proposer une solution <span class="points">4⭐</span></li>
-      <li data-points="4" id="g23">Apprendre et enseigner une recette d’une autre culture <span class="points">4⭐</span></li>
-      <li data-points="4" id="g24">Visiter musée/parc et écrire un résumé <span class="points">4⭐</span></li>
-      <li data-points="4" id="g25">Construire modèle / bricolage / expérience <span class="points">4⭐</span></li>
-      <li data-points="4" id="g26">Créer mini-business et présenter <span class="points">4⭐</span></li>
-      <li data-points="4" id="g27">Organiser soirée quiz familiale <span class="points">4⭐</span></li>
-      <li data-points="4" id="g28">Organiser une mini-activité éducative ou ludique pour un groupe d’amis ou la famille <span class="points">4⭐</span></li>
-      <li data-points="4" id="g29">Dessiner un poster ou infographie éducative pour la famille ou classe <span class="points">4⭐</span></li>
-      <li data-points="4" id="g30">Filmer une courte vidéo tutorielle sur un hobby ou compétence <span class="points">4⭐</span></li>
-      <li data-points="4" id="g31">Inventer un petit jeu ou quiz pour divertir la famille ou amis <span class="points">4⭐</span></li>
-      <li data-points="4" id="g32">Construire un petit objet ou bricolage utile pour la maison ou l’école <span class="points">4⭐</span></li>
-      <li data-points="4" id="g33">Écrire une courte histoire ou BD pour  un ami <span class="points">4⭐</span></li>
-      <li data-points="4" id="g34">Aider un voisin ou membre de la famille avec un projet ou tâche <span class="points">4⭐</span></li>
-      <li data-points="4" id="g35">Proposer une solution à un problème pratique à la maison et tester <span class="points">4⭐</span></li>
-      <li data-points="4" id="g36">Créer un mini-produit / prototype à partir de matériaux recyclés <span class="points">4⭐</span></li>
+      <li data-points="4" id="g18"><span class="points">4⭐</span>Inviter un invité et préparer 3 questions</li>
+      <li data-points="4" id="g19"><span class="points">4⭐</span>Faire une mini-présentation</li>
+      <li data-points="4" id="g20"><span class="points">4⭐</span>Créer un TED Talk familial</li>
+      <li data-points="4" id="g21"><span class="points">4⭐</span>Écrire et jouer une mini-pièce/sketch</li>
+      <li data-points="4" id="g22"><span class="points">4⭐</span>Chercher un problème réel et proposer une solution</li>
+      <li data-points="4" id="g23"><span class="points">4⭐</span>Apprendre et enseigner une recette d’une autre culture</li>
+      <li data-points="4" id="g24"><span class="points">4⭐</span>Visiter musée/parc et écrire un résumé</li>
+      <li data-points="4" id="g25"><span class="points">4⭐</span>Construire modèle / bricolage / expérience</li>
+      <li data-points="4" id="g26"><span class="points">4⭐</span>Créer mini-business et présenter</li>
+      <li data-points="4" id="g27"><span class="points">4⭐</span>Organiser soirée quiz familiale</li>
+      <li data-points="4" id="g28"><span class="points">4⭐</span>Organiser une mini-activité éducative ou ludique pour un groupe d’amis ou la famille</li>
+      <li data-points="4" id="g29"><span class="points">4⭐</span>Dessiner un poster ou infographie éducative pour la famille ou classe</li>
+      <li data-points="4" id="g30"><span class="points">4⭐</span>Filmer une courte vidéo tutorielle sur un hobby ou compétence</li>
+      <li data-points="4" id="g31"><span class="points">4⭐</span>Inventer un petit jeu ou quiz pour divertir la famille ou amis</li>
+      <li data-points="4" id="g32"><span class="points">4⭐</span>Construire un petit objet ou bricolage utile pour la maison ou l’école</li>
+      <li data-points="4" id="g33"><span class="points">4⭐</span>Écrire une courte histoire ou BD pour  un ami</li>
+      <li data-points="4" id="g34"><span class="points">4⭐</span>Aider un voisin ou membre de la famille avec un projet ou tâche</li>
+      <li data-points="4" id="g35"><span class="points">4⭐</span>Proposer une solution à un problème pratique à la maison et tester</li>
+      <li data-points="4" id="g36"><span class="points">4⭐</span>Créer un mini-produit / prototype à partir de matériaux recyclés</li>
 
     </ul>
+  </div>
+
+  <!-- Nouvelle colonne pour les tâches en cours -->
+  <div class="list">
+    <h2>Tâches en cours</h2>
+    <ul id="inProgress"></ul>
   </div>
 
   <!-- Récompenses -->
@@ -214,28 +228,107 @@ function saveState() {
   localStorage.setItem('reservePoints', reserve);
 }
 
-// Gestion clic sur tâches / Brain Gigs
-function toggleDone(event) {
-  const li = event.target.tagName === 'LI' ? event.target : event.target.closest('li');
-  if (!li || !li.dataset.points) return;
+// Après création des listes de tâches, injecter un bouton + et un input caché
+document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
+    const btn = document.createElement('button');
+    btn.textContent = '+';
+    btn.className = 'showThreshold';
+    li.appendChild(btn);
 
-  if (!li.classList.contains('done')) {
-    li.classList.add('done');
-    totalPoints += parseInt(li.dataset.points);
-  } else {
-    li.classList.remove('done');
-    totalPoints -= parseInt(li.dataset.points);
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.min = 1;
+    inp.value = 1;
+    inp.className = 'threshold';
+    inp.style.width = '40px';
+    inp.style.margin = '0 5px';
+    li.appendChild(inp);
+
+    const lbl = document.createElement('span');
+    lbl.className = 'label-fois';
+    li.appendChild(lbl);
+
+    const counter = document.createElement('span');
+    counter.className = 'counter';
+    counter.textContent = `0/${inp.value}`;
+    li.appendChild(counter);
+
+    // action du bouton +
+    btn.addEventListener('click', e => {
+      e.stopPropagation();      // empêche toggleDone de se déclencher
+      btn.style.display = 'none';
+      inp.style.display = 'inline-block';
+      lbl.style.display = 'inline';
+      counter.style.display = 'inline';        // afficher compteur
+      counter.textContent = `0/${inp.value}`;  // initialiser
+    });
+  });
+
+// 1) Listener sur chaque <li> pour passer en "Tâches en cours"
+document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
+    li.addEventListener('click', e => {
+      if (li.parentElement.id === 'inProgress') return;
+      // si ce n’est pas un clic sur l’étoile ou le '+'
+      if (e.target.classList.contains('points') || e.target.classList.contains('showThreshold')) return;
+      document.getElementById('inProgress').appendChild(li);
+      saveState();
+    });
+  });
+
+// 2) Adapter toggleDone : suppression du bloc de déplacement
+function toggleDone(event) {
+    const span = event.target;
+    if (!span.classList.contains('points')) return;
+    const li = span.closest('li');
+    if (!li || !li.dataset.points) return;
+
+    // ne rien faire si déjà validée
+    if (li.classList.contains('done')) return;
+
+    // incrément du compteur…
+    const threshold = parseInt(li.querySelector('input.threshold').value) || 1;
+    let count = parseInt(li.dataset.current) || 0;
+    count++;
+    li.dataset.current = count;
+
+    // mise à jour du compteur
+    const counter = li.querySelector('.counter');
+    if (counter) counter.textContent = `${count}/${threshold}`;
+
+    // n’ajoute les points qu’au seuil
+    if (count >= threshold) {
+      totalPoints += parseInt(li.dataset.points);
+      document.getElementById('totalPoints').textContent = totalPoints;
+      li.classList.add('done');
+      li.querySelector('input.threshold').disabled = true;
+      saveState();
+    }
   }
 
-  document.getElementById('totalPoints').textContent = totalPoints;
-  saveState();
-}
+  // 3) Binding sur les étoiles avec stopPropagation
+  document.querySelectorAll('.points').forEach(span => {
+    span.style.cursor = 'pointer';
+    span.addEventListener('click', toggleDone);
+  });
 
 // Bouton reset (ne touche pas à la réserve)
 document.getElementById('resetBtn').addEventListener('click', () => {
   totalPoints = 0;
   document.getElementById('totalPoints').textContent = totalPoints;
-  document.querySelectorAll('#chores li, #brainGigs li').forEach(li => li.classList.remove('done'));
+
+  // Retirer le style "done" de toutes les tâches (y compris celles en cours)
+  document.querySelectorAll('#chores li, #brainGigs li, #inProgress li')
+    .forEach(li => li.classList.remove('done'));
+
+  // Renvoyer les tâches en cours dans leur liste d'origine
+  const inProgress = document.getElementById('inProgress');
+  Array.from(inProgress.children).forEach(li => {
+    const dest = li.id.startsWith('t')
+      ? document.getElementById('chores')
+      : document.getElementById('brainGigs');
+    dest.appendChild(li);
+  });
+
   saveState();
 });
 
@@ -276,8 +369,9 @@ document.getElementById('removeReserveBtn').addEventListener('click', () => {
 });
 
 // Ajouter événements clic sur toutes les tâches et Brain Gigs
-document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
-  li.addEventListener('click', toggleDone);
+document.querySelectorAll('.points').forEach(span => {
+  span.style.cursor = 'pointer';
+  span.addEventListener('click', toggleDone);
 });
 
 // Charger état au démarrage
@@ -286,4 +380,5 @@ loadState();
 </script>
 
 </body>
+</html>
 </html>
