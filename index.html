@@ -27,8 +27,8 @@
     #resetBtn { margin: 10px 0; padding: 8px 15px; font-size: 1em; border:none; border-radius:5px; background:#ff7b7b; color:#fff; cursor:pointer; }
     #resetBtn:hover { background:#ff5252; }
 
-    /* cacher par défaut l’input et son label */
-    .threshold, .label-fois { display: none; }
+    /* cacher par défaut l’input */
+    .threshold { display: none; }
     /* style pour le bouton + */
     .showThreshold { margin-left: 5px; font-weight: bold; cursor: pointer; border: none; background: transparent; }
     /* compteur affiché après clic sur + */
@@ -39,7 +39,37 @@
 
 <h1>Suivi des Tâches & Brain Gigs</h1>
 <p>Clique sur une tâche pour la marquer comme terminée et gagner des points !</p>
+
+
+
+<div style="margin-top:20px;">
+  <!-- Dépenser du total -->
+  <p>
   <p>Total de points : <span id="totalPoints">0</span></p>
+    
+    Dépenser du total : 
+    <input type="number" id="spendTotal" value="0" min="0" style="width:50px; text-align:center;">
+    <button id="spendTotalBtn">Dépenser</button>
+  </p>
+
+  <!-- Ajouter dans la réserve -->
+  <p>
+    Ajouter à la réserve : 
+    <input type="number" id="addReserve" value="0" min="0" style="width:50px; text-align:center;">
+    <button id="addReserveBtn">Ajouter</button>
+  </p>
+
+  <!-- Retirer de la réserve -->
+  <p>
+    Retirer de la réserve : 
+    <input type="number" id="removeReserve" value="0" min="0" style="width:50px; text-align:center;">
+    <button id="removeReserveBtn">Restituer</button>
+  </p>
+
+  <!-- Affichage des totaux -->
+  <p>Points en réserve : <span id="reservePoints" style="width:50px; text-align:center;"></span></p>
+</div>
+<button id="resetBtn">Réinitialiser toutes les tâches</button>
 
 <div class="container">
   <!-- Tâches -->
@@ -164,35 +194,6 @@
   </div>
 </div>
 
-<div style="margin-top:20px;">
-  <!-- Dépenser du total -->
-  <p>
-  <p>Total de points : <span id="totalPoints">0</span></p>
-    
-    Dépenser du total : 
-    <input type="number" id="spendTotal" value="0" min="0" style="width:50px; text-align:center;">
-    <button id="spendTotalBtn">Dépenser</button>
-  </p>
-
-  <!-- Ajouter dans la réserve -->
-  <p>
-    Ajouter à la réserve : 
-    <input type="number" id="addReserve" value="0" min="0" style="width:50px; text-align:center;">
-    <button id="addReserveBtn">Ajouter</button>
-  </p>
-
-  <!-- Retirer de la réserve -->
-  <p>
-    Retirer de la réserve : 
-    <input type="number" id="removeReserve" value="0" min="0" style="width:50px; text-align:center;">
-    <button id="removeReserveBtn">Restituer</button>
-  </p>
-
-  <!-- Affichage des totaux -->
-  <p>Points en réserve : <span id="reservePoints" style="width:50px; text-align:center;"></span></p>
-</div>
-<button id="resetBtn">Réinitialiser toutes les tâches</button>
-
 
 <script>
 
@@ -208,6 +209,15 @@ function loadState() {
   const reserve = parseInt(localStorage.getItem('reservePoints')) || 0;
   document.getElementById('reservePoints').textContent = reserve;
 
+  // Restaurer les tâches en cours
+  const inProg = document.getElementById('inProgress');
+  const inProgressItems = JSON.parse(localStorage.getItem('inProgressItems')) || [];
+  inProgressItems.forEach(id => {
+    const li = document.getElementById(id);
+    if (li) inProg.appendChild(li);
+  });
+
+  // Restaurer le statut "done" sur toutes les listes
   doneItems.forEach(id => {
     const li = document.getElementById(id);
     if (li) li.classList.add('done');
@@ -216,16 +226,23 @@ function loadState() {
 
 // Sauvegarde de l'état
 function saveState() {
+  // Sauvegarde des points en réserve (read from span.textContent)
+  const reserve = parseInt(document.getElementById('reservePoints').textContent) || 0;
+  
+   localStorage.setItem('totalPoints', totalPoints);
+   localStorage.setItem('reservePoints', reserve);
+
+  // Sauvegarder les tâches en cours
+  const inProgressIDs = Array.from(document.querySelectorAll('#inProgress li'))
+                             .map(li => li.id);
+  localStorage.setItem('inProgressItems', JSON.stringify(inProgressIDs));
+
+  // Sauvegarder l'état "done" de toutes les listes
   const doneItems = [];
-  document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
+  document.querySelectorAll('#chores li, #brainGigs li, #inProgress li').forEach(li => {
     if (li.classList.contains('done')) doneItems.push(li.id);
   });
   localStorage.setItem('doneItems', JSON.stringify(doneItems));
-  localStorage.setItem('totalPoints', totalPoints);
-
-  // Sauvegarde des points en réserve (read from span.textContent)
-  const reserve = parseInt(document.getElementById('reservePoints').textContent) || 0;
-  localStorage.setItem('reservePoints', reserve);
 }
 
 // Après création des listes de tâches, injecter un bouton + et un input caché
@@ -244,21 +261,20 @@ document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
     inp.style.margin = '0 5px';
     li.appendChild(inp);
 
-    const lbl = document.createElement('span');
-    lbl.className = 'label-fois';
-    li.appendChild(lbl);
-
     const counter = document.createElement('span');
     counter.className = 'counter';
+    // initialiser le compteur
     counter.textContent = `0/${inp.value}`;
     li.appendChild(counter);
+
+    // initialize current counter to 0 to avoid undefined
+    li.dataset.current = 0;
 
     // action du bouton +
     btn.addEventListener('click', e => {
       e.stopPropagation();      // empêche toggleDone de se déclencher
       btn.style.display = 'none';
       inp.style.display = 'inline-block';
-      lbl.style.display = 'inline';
       counter.style.display = 'inline';        // afficher compteur
       counter.textContent = `0/${inp.value}`;  // initialiser
     });
@@ -301,6 +317,15 @@ function toggleDone(event) {
       document.getElementById('totalPoints').textContent = totalPoints;
       li.classList.add('done');
       li.querySelector('input.threshold').disabled = true;
+
+      // déplacer la tâche validée hors de "Tâches en cours"
+      if (li.parentElement.id === 'inProgress') {
+        const dest = li.id.startsWith('t')
+          ? document.getElementById('chores')
+          : document.getElementById('brainGigs');
+        dest.appendChild(li);
+      }
+
       saveState();
     }
   }
@@ -328,6 +353,17 @@ document.getElementById('resetBtn').addEventListener('click', () => {
       : document.getElementById('brainGigs');
     dest.appendChild(li);
   });
+
+  // Réinitialiser les compteurs et les masquer
+  document.querySelectorAll('#chores li, #brainGigs li, #inProgress li').forEach(li => {
+      li.dataset.current = 0;
+      const counter = li.querySelector('.counter');
+      const inp     = li.querySelector('input.threshold');
+      if (counter && inp) {
+        counter.textContent = `0/${parseInt(inp.value) || 1}`;
+        counter.style.display = 'none';
+      }
+    });
 
   saveState();
 });
@@ -368,12 +404,6 @@ document.getElementById('removeReserveBtn').addEventListener('click', () => {
   document.getElementById('removeReserve').value = 0;
 });
 
-// Ajouter événements clic sur toutes les tâches et Brain Gigs
-document.querySelectorAll('.points').forEach(span => {
-  span.style.cursor = 'pointer';
-  span.addEventListener('click', toggleDone);
-});
-
 // Charger état au démarrage
 loadState();
 
@@ -381,4 +411,11 @@ loadState();
 
 </body>
 </html>
+</body>
+</html>
+loadState();
+
+</script>
+
+</body>
 </html>
