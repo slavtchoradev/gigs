@@ -33,6 +33,9 @@
     .showThreshold { margin-left: 5px; font-weight: bold; cursor: pointer; border: none; background: transparent; }
     /* compteur affiché après clic sur + */
     .counter { display: none; margin-left: 5px; font-size: 0.9em; color: #333; }
+  /* bouton retirer de "en cours" */
+  .removeFromProgress { margin-left: 5px; font-weight: bold; cursor: pointer; border: none; background: transparent; color: #d33; }
+  .removeFromProgress:hover { color: #a00; }
 </style>
 </head>
 <body>
@@ -40,36 +43,8 @@
 <h1>Suivi des Tâches & Brain Gigs</h1>
 <p>Clique sur une tâche pour la marquer comme terminée et gagner des points !</p>
 
+<p>Total de points : <span id="totalPoints">0</span></p>
 
-
-<div style="margin-top:20px;">
-  <!-- Dépenser du total -->
-  <p>
-  <p>Total de points : <span id="totalPoints">0</span></p>
-    
-    Dépenser du total : 
-    <input type="number" id="spendTotal" value="0" min="0" style="width:50px; text-align:center;">
-    <button id="spendTotalBtn">Dépenser</button>
-  </p>
-
-  <!-- Ajouter dans la réserve -->
-  <p>
-    Ajouter à la réserve : 
-    <input type="number" id="addReserve" value="0" min="0" style="width:50px; text-align:center;">
-    <button id="addReserveBtn">Ajouter</button>
-  </p>
-
-  <!-- Retirer de la réserve -->
-  <p>
-    Retirer de la réserve : 
-    <input type="number" id="removeReserve" value="0" min="0" style="width:50px; text-align:center;">
-    <button id="removeReserveBtn">Restituer</button>
-  </p>
-
-  <!-- Affichage des totaux -->
-  <p>Points en réserve : <span id="reservePoints" style="width:50px; text-align:center;"></span></p>
-</div>
-<button id="resetBtn">Réinitialiser toutes les tâches</button>
 
 <div class="container">
   <!-- Tâches -->
@@ -194,10 +169,91 @@
   </div>
 </div>
 
+<div style="margin-top:20px;">
+  <!-- Dépenser du total -->
+  <p>
+    
+    Dépenser du total : 
+    <input type="number" id="spendTotal" value="0" min="0" style="width:50px; text-align:center;">
+    <button id="spendTotalBtn">Dépenser</button>
+  </p>
+
+  <!-- Ajouter dans la réserve -->
+  <p>
+    Ajouter à la réserve : 
+    <input type="number" id="addReserve" value="0" min="0" style="width:50px; text-align:center;">
+    <button id="addReserveBtn">Ajouter</button>
+  </p>
+
+  <!-- Retirer de la réserve -->
+  <p>
+    Retirer de la réserve : 
+    <input type="number" id="removeReserve" value="0" min="0" style="width:50px; text-align:center;">
+    <button id="removeReserveBtn">Restituer</button>
+  </p>
+
+  <!-- Affichage des totaux -->
+  <p>Points en réserve : <span id="reservePoints" style="width:50px; text-align:center;"></span></p>
+  <button id="resetBtn">Réinitialiser toutes les tâches</button>
+</div>
 
 <script>
 
 let totalPoints = 0;
+
+// --- Helpers to persist per-task thresholds and counters ---
+function getTaskProgressMap() {
+  try {
+    return JSON.parse(localStorage.getItem('taskProgress')) || {};
+  } catch {
+    return {};
+  }
+}
+
+function setTaskProgressMap(map) {
+  localStorage.setItem('taskProgress', JSON.stringify(map));
+}
+
+function saveTaskProgress(id, patch) {
+  const map = getTaskProgressMap();
+  map[id] = { ...(map[id] || {}), ...patch };
+  setTaskProgressMap(map);
+}
+
+function removeTaskProgress(id) {
+  const map = getTaskProgressMap();
+  if (map[id]) { delete map[id]; setTaskProgressMap(map); }
+}
+
+// --- Helpers pour le bouton de retrait de "Tâches en cours" ---
+function addRemoveButton(li) {
+  if (!li || li.querySelector('button.removeFromProgress')) return;
+  const btn = document.createElement('button');
+  btn.textContent = '-';
+  btn.className = 'removeFromProgress';
+  btn.title = 'Retirer de Tâches en cours';
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    moveTaskBackToOrigin(li);
+  });
+  li.appendChild(btn);
+}
+
+function removeRemoveButton(li) {
+  const btn = li && li.querySelector('button.removeFromProgress');
+  if (btn) btn.remove();
+}
+
+function moveTaskBackToOrigin(li) {
+  if (!li) return;
+  // déplacer vers la liste d'origine sans marquer comme done
+  const dest = li.id.startsWith('t')
+    ? document.getElementById('chores')
+    : document.getElementById('brainGigs');
+  removeRemoveButton(li);
+  dest.appendChild(li);
+  saveState();
+}
 
 // Charger l'état au démarrage
 function loadState() {
@@ -214,13 +270,37 @@ function loadState() {
   const inProgressItems = JSON.parse(localStorage.getItem('inProgressItems')) || [];
   inProgressItems.forEach(id => {
     const li = document.getElementById(id);
-    if (li) inProg.appendChild(li);
+    if (li) {
+      inProg.appendChild(li);
+      addRemoveButton(li);
+    }
   });
 
   // Restaurer le statut "done" sur toutes les listes
   doneItems.forEach(id => {
     const li = document.getElementById(id);
     if (li) li.classList.add('done');
+  });
+
+  // Restaurer les seuils/compteurs choisis pour les tâches (surtout en cours)
+  const progressMap = getTaskProgressMap();
+  Object.entries(progressMap).forEach(([id, data]) => {
+    const li = document.getElementById(id);
+    if (!li) return;
+    const inp = li.querySelector('input.threshold');
+    const btn = li.querySelector('button.showThreshold');
+    const counter = li.querySelector('span.counter');
+    if (!inp || !btn || !counter) return;
+    const threshold = parseInt(data.threshold) || 1;
+    const current = parseInt(data.current) || 0;
+    inp.value = threshold;
+    li.dataset.current = current;
+    if (data.shown) {
+      btn.style.display = 'none';
+      inp.style.display = 'inline-block';
+      counter.style.display = 'inline';
+    }
+    counter.textContent = `${current}/${threshold}`;
   });
 }
 
@@ -277,6 +357,18 @@ document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
       inp.style.display = 'inline-block';
       counter.style.display = 'inline';        // afficher compteur
       counter.textContent = `0/${inp.value}`;  // initialiser
+      // sauvegarder l'état d'affichage et le seuil initial
+      saveTaskProgress(li.id, { shown: true, threshold: parseInt(inp.value) || 1, current: parseInt(li.dataset.current) || 0 });
+      saveState();
+    });
+
+    // mise à jour du seuil par l'utilisateur
+    inp.addEventListener('input', e => {
+      const threshold = parseInt(inp.value) || 1;
+      const current = parseInt(li.dataset.current) || 0;
+      counter.textContent = `${current}/${threshold}`;
+      saveTaskProgress(li.id, { shown: true, threshold, current });
+      saveState();
     });
   });
 
@@ -284,9 +376,11 @@ document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
 document.querySelectorAll('#chores li, #brainGigs li').forEach(li => {
     li.addEventListener('click', e => {
       if (li.parentElement.id === 'inProgress') return;
+      if (li.classList.contains('done')) return;
       // si ce n’est pas un clic sur l’étoile ou le '+'
       if (e.target.classList.contains('points') || e.target.classList.contains('showThreshold')) return;
       document.getElementById('inProgress').appendChild(li);
+      addRemoveButton(li);
       saveState();
     });
   });
@@ -311,6 +405,11 @@ function toggleDone(event) {
     const counter = li.querySelector('.counter');
     if (counter) counter.textContent = `${count}/${threshold}`;
 
+  // sauvegarder la progression (marquer shown seulement si l'UI est affichée)
+  const inp = li.querySelector('input.threshold');
+  const isShown = inp && inp.style.display !== 'none';
+  saveTaskProgress(li.id, { shown: !!isShown, threshold, current: count });
+
     // n’ajoute les points qu’au seuil
     if (count >= threshold) {
       totalPoints += parseInt(li.dataset.points);
@@ -323,8 +422,12 @@ function toggleDone(event) {
         const dest = li.id.startsWith('t')
           ? document.getElementById('chores')
           : document.getElementById('brainGigs');
+        removeRemoveButton(li);
         dest.appendChild(li);
       }
+
+      // supprimer la progression stockée une fois terminée
+      removeTaskProgress(li.id);
 
       saveState();
     }
@@ -351,6 +454,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
     const dest = li.id.startsWith('t')
       ? document.getElementById('chores')
       : document.getElementById('brainGigs');
+    removeRemoveButton(li);
     dest.appendChild(li);
   });
 
@@ -359,11 +463,19 @@ document.getElementById('resetBtn').addEventListener('click', () => {
       li.dataset.current = 0;
       const counter = li.querySelector('.counter');
       const inp     = li.querySelector('input.threshold');
+      const plusBtn = li.querySelector('button.showThreshold');
       if (counter && inp) {
         counter.textContent = `0/${parseInt(inp.value) || 1}`;
         counter.style.display = 'none';
+        inp.disabled = false; // re-activer l'édition du seuil après reset
+        // Revenir à l'état initial: cacher l'input et réafficher le bouton +
+        inp.style.display = 'none';
+        if (plusBtn) plusBtn.style.display = 'inline-block';
       }
     });
+
+  // Effacer la progression stockée des seuils/compteurs
+  localStorage.removeItem('taskProgress');
 
   saveState();
 });
@@ -405,14 +517,6 @@ document.getElementById('removeReserveBtn').addEventListener('click', () => {
 });
 
 // Charger état au démarrage
-loadState();
-
-</script>
-
-</body>
-</html>
-</body>
-</html>
 loadState();
 
 </script>
